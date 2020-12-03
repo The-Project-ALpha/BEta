@@ -55,6 +55,13 @@ async def CheckInvite(m:discord.message, ch:discord.TextChannel, chID:int, guild
         desc = guild["rules"][rule]["Description"]
         if(guild["rules"][rule]["Way"] == "delete"):
             await m.delete()
+        elif(guild["rules"][rule]["Way"] == "kick"):
+            await m.author.kick(reason = f"{m.channel.guild.name} 서버에서 규칙 {rule+1} 을 위반")
+        elif(guild["rules"][rule]["Way"] == "ban"):
+            await m.author.ban(reason = f"{m.channel.guild.name} 서버에서 규칙 {rule+1} 을 위반")
+        else:
+            await m.author.send(embed=discord.Embed(title="규칙 위반", description = f"{m.channel.guild.name} 서버에서 규칙 {rule+1} 을 위반했습니다.", color = randomColor()))
+        
         await ch.send(f"{m.author.mention} 규칙 {rule+1} 을 위반하셨습니다.\n```{desc}```")
         await ch.guild.get_channel(guild["managech"]).send(embed=discord.Embed(title = "규칙 위반 알림", description = f"{m.author.mention} 님이 {m.channel.mention} 에서 {rule+1}번째 규칙을 위반하셨습니다.\n[메세지로 이동하기](https://discord.com/channels/{m.channel.guild.id}/{m.channel.id}/{m.id})\n\n메세지 내용```{m.content}```", color = randomColor()))
 

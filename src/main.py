@@ -4,6 +4,9 @@ import sys
 import json
 import random
 import asyncio
+import re
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 
 with open("data/info.json", "r") as fp:
     j = fp.read()
@@ -12,6 +15,35 @@ intents = discord.Intents.all()
 client = discord.Client(intents = intents)
 def randomColor() -> int:
     return random.randint(0, 16777215)
+
+
+
+def CheckLink(m:str, ch:discord.TextChannel, chID:int) -> None:
+    ms = m.split(" ")
+    urls = list()
+    a = 0
+    for i in ms:
+        try:
+            res = urlopen(i)
+            urls.append(i)
+            a = a + 1
+        except:
+            try:
+                res = urlopen("https://" + i)
+                urls.append(i)
+            except:
+                try:
+                    res = urlopen("http://" + i)
+                    urls.append(i)
+                except:
+                    urls.append("None")
+                    a = a + 1
+    print(urls)
+
+    
+
+
+
 
 @client.event
 async def on_ready() -> None:
@@ -22,6 +54,13 @@ async def on_ready() -> None:
 
 @client.event
 async def on_message(msg:discord.Message) -> None:
+    if(msg.author.bot):
+        return
+    with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
+        guild:dict = json.loads(fp.read())
+    for i in guild["rules"]:
+        if(i["Type"] == "NoLink"):
+            CheckLink(msg.content, msg.channel, guild["managech"])
     if(not msg.content.startswith("*")):
         return
     c:str = msg.content
@@ -35,9 +74,11 @@ BEta Bot Version - {data["VERSION"]}
 """, color = randomColor()))
         return
     if(cs[0] == "*rule"):
+        def check(message):
+            return message.author == msg.author
         if(not os.path.isfile(f"data/guilds/{msg.guild.id}.json")):
             with open(f"data/guilds/{msg.guild.id}.json", "w", encoding='UTF-8') as fp:
-                d:dict = {"rules" : list()}
+                d:dict = {"rules" : list(), "managech" : msg.channel.id}
                 json.dump(d, fp, ensure_ascii=False)
         if(cs[1] == "list"):
             with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
@@ -60,30 +101,91 @@ BEta Bot Version - {data["VERSION"]}
             with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
                 guild = json.loads(fp.read())
             d:dict = {}
-            def check(message):
-                return message.author == msg.author
             await send(embed=embed(title="규칙의 타입을 입력해 주세요.", description = "Type```NoLink : 링크 포스트 금지\nNoInvite : 서버 초대링크 포스트 금지```", color = randomColor()))
             try:
                 m = await client.wait_for("message", timeout = 20.0, check=check)
                 d["Type"] = m.content
             except asyncio.TimeoutError:
                 await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
+                return
             await send(embed=embed(title="규칙의 설명을 입력해 주세요.", color = randomColor()))
             try:
                 m = await client.wait_for("message", timeout = 20.0, check=check)
                 d["Description"] = m.content
             except asyncio.TimeoutError:
                 await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
+                return
             guild["rules"].append(d)
             with open(f"data/guilds/{msg.guild.id}.json", "w", encoding='UTF-8') as fp:
                 json.dump(guild, fp, ensure_ascii=False)
             await send(embed=embed(title="성공적으로 규칙을 추가했습니다.", description = f"규칙의 타입 ```{d['Type']}```\n규칙의 설명 ```{d['Description']}```", color = randomColor()))
-    
+        if(cs[1] == "remove"):
+            perm:discord.Permissions = msg.author.guild_permissions
+            if(not perm.administrator):
+                await send(embed=embed(title="규칙을 수정할 권한이 없습니다.", color = 0xff0000))
+                return
+            with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
+                guild = json.loads(fp.read())
+            r = guild["rules"]
+            s = "```규칙이 없습니다.```"
+            if(not len(r) == 0):
+                s = "```"
+                l = 1
+                for i in r:
+                    s = s + f"Rule {l} : " + i["Description"] + "\n\n"
+                    l = l + 1
+                s = s + "```"
+            await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))
+            await send(embed=embed(title="삭제할 규칙의 번호를 입력해주세요.", color = randomColor()))
+            try:
+                m = await client.wait_for("message", timeout = 20.0, check=check)
+            except asyncio.TimeoutError:
+                await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
+                return
+            del guild["rules"][int(m.content) - 1]
+            with open(f"data/guilds/{msg.guild.id}.json", "w", encoding='UTF-8') as fp:
+                json.dump(guild, fp, ensure_ascii=False)
+            await send(embed=embed(title="성공적으로 규칙을 삭제했습니다.", color = randomColor()))
+            with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
+                guild = json.loads(fp.read())
+            r = guild["rules"]
+            s = "```규칙이 없습니다.```"
+            if(not len(r) == 0):
+                s = "```"
+                l = 1
+                for i in r:
+                    s = s + f"Rule {l} : " + i["Description"] + "\n\n"
+                    l = l + 1
+                s = s + "```"   
+            await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))
     if(msg.author.id == 418023987864403968 and msg.content == "*restart"):
         await send(embed = embed(title="Restart", color = randomColor()))
         os.system("cls")
         os.system("python main.py")
         sys.exit()
+    if(cs[0] == "*set"):
+        if(cs[1] == "channel"):
+            perm:discord.Permissions = msg.author.guild_permissions
+            if(not perm.administrator):
+                await send(embed=embed(title="규칙을 수정할 권한이 없습니다.", color = 0xff0000))
+                return
+            chid = int(re.findall(r"\d+", cs[2])[0])
+            with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
+                guild = json.loads(fp.read())
+            guild["managech"] = chid
+            with open(f"data/guilds/{msg.guild.id}.json", "w", encoding='UTF-8') as fp:
+                json.dump(guild, fp, ensure_ascii=False)
+            await send(embed=embed(title = "변경 성공", description = f"관리자 채널을 <#{chid}> 채널로 변경했습니다.", color = randomColor()))
+    
+
+    
+    
+
+    
+
+
+
+
 
 @client.event
 async def on_guild_join(guild:discord.Guild):

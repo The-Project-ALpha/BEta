@@ -1,0 +1,1 @@
+{"rules": [{"Type": "NoInvite", "Description": "서버 초대링크 포스트 금지", "Way": "delete"}, {"Type": "NoLink", "Description": "리읔 포스트 금지", "Way": "delete"}], "managech": 726330290116624405}

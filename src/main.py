@@ -18,27 +18,7 @@ def randomColor() -> int:
 
 
 
-def CheckLink(m:str, ch:discord.TextChannel, chID:int) -> None:
-    ms = m.split(" ")
-    urls = list()
-    a = 0
-    for i in ms:
-        try:
-            res = urlopen(i)
-            urls.append(i)
-            a = a + 1
-        except:
-            try:
-                res = urlopen("https://" + i)
-                urls.append(i)
-            except:
-                try:
-                    res = urlopen("http://" + i)
-                    urls.append(i)
-                except:
-                    urls.append("None")
-                    a = a + 1
-    print(urls)
+
 
     
 
@@ -56,11 +36,7 @@ async def on_ready() -> None:
 async def on_message(msg:discord.Message) -> None:
     if(msg.author.bot):
         return
-    with open(f"data/guilds/{msg.guild.id}.json", "r", encoding='UTF-8') as fp:
-        guild:dict = json.loads(fp.read())
-    for i in guild["rules"]:
-        if(i["Type"] == "NoLink"):
-            CheckLink(msg.content, msg.channel, guild["managech"])
+
     if(not msg.content.startswith("*")):
         return
     c:str = msg.content
@@ -159,7 +135,7 @@ BEta Bot Version - {data["VERSION"]}
                 s = s + "```"   
             await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))
     if(msg.author.id == 418023987864403968 and msg.content == "*restart"):
-        await send(embed = embed(title="Restart", color = randomColor()))
+        await send(embed = embed(title="Main Program Restart", color = randomColor()))
         os.system("cls")
         os.system("python main.py")
         sys.exit()

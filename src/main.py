@@ -7,6 +7,7 @@ import asyncio
 import re
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
+import math
 
 with open("data/info.json", "r") as fp:
     j = fp.read()
@@ -47,6 +48,9 @@ async def on_message(msg:discord.Message) -> None:
         await send(embed = embed(title="Info", description = f"""
 Discord.py Version - {discord.__version__}
 BEta Bot Version - {data["VERSION"]}
+[Invite Link](https://discord.com/api/oauth2/authorize?client_id=783157437745725451&permissions=67497030&scope=bot)
+
+Ping : {math.floor(client.latency)}ms
 """, color = randomColor()))
         return
     if(cs[0] == "*rule"):
@@ -79,7 +83,7 @@ BEta Bot Version - {data["VERSION"]}
             with open(f"data/guilds/{msg.guild.id}/info.json", "r", encoding='UTF-8') as fp:
                 guild = json.loads(fp.read())
             d:dict = {}
-            await send(embed=embed(title="규칙의 타입을 입력해 주세요.", description = "Type```NoLink : 링크 포스트 금지\nNoInvite : 서버 초대링크 포스트 금지```", color = randomColor()))
+            await send(embed=embed(title="규칙의 타입을 입력해 주세요.", description = "Type```NoLink : 링크 포스트 금지\nNoInvite : 서버 초대링크 포스트 금지\nNickName : 건전한 닉네임```", color = randomColor()))
             try:
                 m = await client.wait_for("message", timeout = 20.0, check=check)
                 d["Type"] = m.content
@@ -93,13 +97,24 @@ BEta Bot Version - {data["VERSION"]}
             except asyncio.TimeoutError:
                 await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
                 return
-            await send(embed=embed(title="규칙을 지키지 않을시의 처벌을 입력해 주세요.", description = "Type```delete : 메세지 삭제\nkick : 추방\nwarn : 경고 메세지\nban : 밴때리기```", color = randomColor()))
+            if(d["Type"] == "NoLink" or d["Type"] == "NoInvite"):
+                await send(embed=embed(title="규칙을 지키지 않을시의 처벌을 입력해 주세요.", description = "Type```delete : 메세지 삭제\nkick : 추방\nwarn : 경고 메세지\nban : 밴때리기```", color = randomColor()))
+            elif(d["Type"] == "NickName"):
+                await send(embed=embed(title="규칙을 지키지 않을시의 처벌을 입력해 주세요.", description = "Type```edit : 닉네임을 강제로 변경함\nkick : 추방\warn : 경고 메세지\nban : 밴때리기```", color = randomColor()))
             try:
                 m = await client.wait_for("message", timeout = 20.0, check=check)
                 d["Way"] = m.content
             except asyncio.TimeoutError:
                 await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
                 return
+            
+            if(d["Type"] == "NickName"):
+                await send(embed=embed(title="필터링할 비속어 목록", description = "비속어들은 ,(콤마)로 구분해주세요. 예시```ㅁㄴㅇㄹ, ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ```"))
+                try:
+                    m = await client.wait_for("message", timeout = 20.0, check=check)
+                    d["param"] = m.content.split(",")
+                except asyncio.TimeoutError:
+                    await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
             guild["rules"].append(d)
             with open(f"data/guilds/{msg.guild.id}/info.json", "w", encoding='UTF-8') as fp:
                 json.dump(guild, fp, ensure_ascii=False)
@@ -143,7 +158,7 @@ BEta Bot Version - {data["VERSION"]}
                     l = l + 1
                 s = s + "```"   
             await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))
-    if(msg.author.id == 418023987864403968 and msg.content == "*restart"):
+    if(msg.author.id == 418023987864403968 and msg.content == "*r"):
         await send(embed = embed(title="Main Program Restart", color = randomColor()))
         os.system("cls")
         os.system("python main.py")

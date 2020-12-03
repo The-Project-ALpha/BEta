@@ -41,6 +41,15 @@ async def CheckLink(m:discord.message, ch:discord.TextChannel, chID:int, guild:d
                 break
             rule = rule + 1
         desc = guild["rules"][rule]["Description"]
+        if(guild["rules"][rule]["Way"] == "delete"):
+            await m.delete()
+        elif(guild["rules"][rule]["Way"] == "kick"):
+            await m.author.kick(reason = f"{m.channel.guild.name} 서버에서 규칙 {rule+1} 을 위반")
+        elif(guild["rules"][rule]["Way"] == "ban"):
+            await m.author.ban(reason = f"{m.channel.guild.name} 서버에서 규칙 {rule+1} 을 위반")
+        else:
+            await m.author.send(embed=discord.Embed(title="규칙 위반", description = f"{m.channel.guild.name} 서버에서 규칙 {rule+1} 을 위반했습니다.", color = randomColor()))
+
         await ch.send(f"{m.author.mention} 규칙 {rule+1} 을 위반하셨습니다.\n```{desc}```")
         await ch.guild.get_channel(guild["managech"]).send(embed=discord.Embed(title = "규칙 위반 알림", description = f"{m.author.mention} 님이 {m.channel.mention} 에서 {rule+1}번째 규칙을 위반하셨습니다.\n[메세지로 이동하기](https://discord.com/channels/{m.channel.guild.id}/{m.channel.id}/{m.id})\n\n메세지 내용```{m.content}```", color = randomColor()))
 
@@ -64,7 +73,21 @@ async def CheckInvite(m:discord.message, ch:discord.TextChannel, chID:int, guild
         
         await ch.send(f"{m.author.mention} 규칙 {rule+1} 을 위반하셨습니다.\n```{desc}```")
         await ch.guild.get_channel(guild["managech"]).send(embed=discord.Embed(title = "규칙 위반 알림", description = f"{m.author.mention} 님이 {m.channel.mention} 에서 {rule+1}번째 규칙을 위반하셨습니다.\n[메세지로 이동하기](https://discord.com/channels/{m.channel.guild.id}/{m.channel.id}/{m.id})\n\n메세지 내용```{m.content}```", color = randomColor()))
-
+async def CheckNickName(a:discord.Member, chID:int, guild:dict) -> None:
+    rule = 0
+    desc = ""
+    for i in guild["rules"]:
+        if(i["Type"] == "NickName"):
+            break
+        rule = rule + 1
+    desc = guild["rules"][rule]["Description"]
+    nlist = guild["rules"][rule]["param"]
+    nk = a.nick
+    isn = False
+    for i in nlist:
+        if(i in nk):
+            isn = True
+    
 def randomColor() -> int:
     return random.randint(0, 16777215)
 @client.event
@@ -76,7 +99,7 @@ async def on_message(msg):
         return
     send = msg.channel.send
     embed = discord.Embed
-    if(msg.author.id == 418023987864403968 and msg.content == "*restart"):
+    if(msg.author.id == 418023987864403968 and msg.content == "*r"):
         await send(embed = embed(title="Checker Module Restart", color = randomColor()))
         os.system("cls")
         os.system("python check.py")
@@ -88,5 +111,12 @@ async def on_message(msg):
             await CheckLink(msg, msg.channel, guild["managech"], guild)
         if(i["Type"] == "NoInvite"):
             await CheckInvite(msg, msg.channel, guild["managech"], guild)
-
+        
+@client.event
+async def on_member_update(b, a):
+    with open(f"data/guilds/{a.guild.id}/info.json", "r", encoding='UTF-8') as fp:
+        guild:dict = json.loads(fp.read())
+        for i in guild["rules"]:
+            if(i["Type"] == "NickName"):
+                await CheckNickName(a, guild["managech"], guild)
 client.run(os.environ["TOKEN"])

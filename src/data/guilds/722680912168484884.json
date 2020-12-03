@@ -1,1 +1,1 @@
-{"rules": [{"Type": "NoLink", "Description": "링크 포스트 금지"}], "managech": 726330290116624405}
+{"rules": [{"Type": "NoLink", "Description": "링크 포스트 금지"}, {"Type": "NoInvite", "Description": "타 서버 초대링크 전송 금지"}], "managech": 726330290116624405}

@@ -65,7 +65,7 @@ BEta Bot Version - {data["VERSION"]}
                 s = "```"
                 l = 1
                 for i in r:
-                    s = s + f"Rule {l} : " + i["Description"] + "\n\n"
+                    s = s + f"Rule {l} : " + i["Description"] + f"\nType : `{i['Type']}`\n"
                     l = l + 1
                 s = s + "```"   
             await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))
@@ -108,7 +108,7 @@ BEta Bot Version - {data["VERSION"]}
                 s = "```"
                 l = 1
                 for i in r:
-                    s = s + f"Rule {l} : " + i["Description"] + "\n\n"
+                    s = s + f"Rule {l} : " + i["Description"] + f"\nType : `{i['Type']}`\n"
                     l = l + 1
                 s = s + "```"
             await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))
@@ -130,7 +130,7 @@ BEta Bot Version - {data["VERSION"]}
                 s = "```"
                 l = 1
                 for i in r:
-                    s = s + f"Rule {l} : " + i["Description"] + "\n\n"
+                    s = s + f"Rule {l} : " + i["Description"] + f"\nType : `{i['Type']}`\n"
                     l = l + 1
                 s = s + "```"   
             await send(embed=embed(title="이 서버의 규칙", description = s, color = randomColor()))

@@ -100,14 +100,22 @@ Ping : {math.floor(client.latency)}ms
             if(d["Type"] == "NoLink" or d["Type"] == "NoInvite"):
                 await send(embed=embed(title="규칙을 지키지 않을시의 처벌을 입력해 주세요.", description = "Type```delete : 메세지 삭제\nkick : 추방\nwarn : 경고 메세지\nban : 밴때리기```", color = randomColor()))
             elif(d["Type"] == "NickName"):
-                await send(embed=embed(title="규칙을 지키지 않을시의 처벌을 입력해 주세요.", description = "Type```edit : 닉네임을 강제로 변경함\nkick : 추방\warn : 경고 메세지\nban : 밴때리기```", color = randomColor()))
+                await send(embed=embed(title="규칙을 지키지 않을시의 처벌을 입력해 주세요.", description = "Type```edit : 닉네임을 강제로 변경함\nkick : 추방\nwarn : 경고 메세지\nban : 밴때리기```", color = randomColor()))
             try:
                 m = await client.wait_for("message", timeout = 20.0, check=check)
                 d["Way"] = m.content
             except asyncio.TimeoutError:
                 await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
                 return
-            
+            if(d["Type"] == "NickName" and d["Way"] == "edit"):
+                await send(embed=embed(title="바꿀 닉네임", description = "나쁜 닉네임을 감지시 입력한 닉네임으로 변경힙니다.", color = randomColor()))
+                try:
+                    m = await client.wait_for("message", timeout = 20.0, check=check)
+                    d["edit"] = m.content
+                except asyncio.TimeoutError:
+                    await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
+                    return
+
             if(d["Type"] == "NickName"):
                 await send(embed=embed(title="필터링할 비속어 목록", description = "비속어들은 ,(콤마)로 구분해주세요. 예시```ㅁㄴㅇㄹ, ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ ,ㅁㄴㅇㄹ```"))
                 try:
@@ -115,6 +123,7 @@ Ping : {math.floor(client.latency)}ms
                     d["param"] = m.content.split(",")
                 except asyncio.TimeoutError:
                     await send(embed=embed(title="일정 시간동안 메세지를 입력하지 않아 취소되었습니다.", color = 0xff0000))
+                    return
             guild["rules"].append(d)
             with open(f"data/guilds/{msg.guild.id}/info.json", "w", encoding='UTF-8') as fp:
                 json.dump(guild, fp, ensure_ascii=False)

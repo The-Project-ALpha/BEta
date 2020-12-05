@@ -1,1 +1,1 @@
-{"rules": [{"Type": "NoInvite", "Description": "서버 초대링크 포스트 금지", "Way": "delete"}, {"Type": "NoLink", "Description": "리읔 포스트 금지", "Way": "delete"}], "managech": 726330290116624405}
+{"rules": [{"Type": "NoInvite", "Description": "서버 초대링크 포스트 금지", "Way": "delete"}, {"Type": "NickName", "Description": "나쁜닉 안됨", "Way": "edit", "edit": "서리 바보", "param": ["루비 바보", " 루비 멍청이"]}], "managech": 726330290116624405}
